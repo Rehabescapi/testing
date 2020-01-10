@@ -1,18 +1,26 @@
 import React from 'react'
 import {savePost} from './api'
+
+import {Redirect} from 'react-router'
 function Editor({user}) {
   const [isSaving, setIsSaving] = React.useState(false)
+  const [redirect, setRedirect] = React.useState(false)
 
   function handleSubmit(e) {
     e.preventDefault()
     const {title, content, tags} = e.target.elements
     setIsSaving(true)
-    savePost({
+    const newPost = {
       title: title.value,
       content: content.value,
       tags: tags.value.split(',').map(t => t.trim()),
+      date: new Date().toISOString(),
       authorId: user.id,
-    })
+    }
+    savePost(newPost).then(() => setRedirect(true))
+  }
+  if (redirect) {
+    return <Redirect to="/" />
   }
 
   return (
