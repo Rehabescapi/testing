@@ -3,6 +3,7 @@ import {render, fireEvent, wait} from '@testing-library/react'
 
 import {Redirect as MockRedirect} from 'react-router'
 
+import {build, fake, sequence} from 'test-data-bot'
 import {savePost as mockSavePost} from '../api'
 import {Editor} from '../post-editor-markup'
 jest.mock('../api')
@@ -12,17 +13,28 @@ jest.mock('react-router', () => {
   }
 })
 
+afterEach(() => {
+  jest.clearAllMocks()
+})
+
+const postBuilder = build('Post').fields({
+  title: fake(f => f.lorem.words()),
+  content: fake(f => f.lorem.paragraphs().replace(/\r/g, '')),
+  tags: fake(f => [f.lorem.words(), f.lorem.words(), f.lorem.words()]),
+})
+
+const userBuilder = build('User').fields({
+  id: sequence(s => `user-${s}`),
+})
+
 test('renders a form with title, content, tags, and a submit button', async () => {
   mockSavePost.mockResolvedValueOnce()
-  const fakeUser = {id: 'user-1'}
+  const fakeUser = userBuilder()
+
   const {getByLabelText, getByText} = render(<Editor user={fakeUser} />)
 
   const preDate = new Date().getTime()
-  const fakePost = {
-    title: 'Test Title',
-    content: 'test content',
-    tags: ['tag1', 'tag2'],
-  }
+  const fakePost = postBuilder()
   getByLabelText(/title/i).value = fakePost.title
   getByLabelText(/content/i).value = fakePost.content
   getByLabelText(/tags/i).value = fakePost.tags.join(', ')
