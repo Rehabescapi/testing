@@ -1,7 +1,7 @@
 import React from 'react'
+import {Redirect} from 'react-router'
 import {savePost} from './api'
 
-import {Redirect} from 'react-router'
 function Editor({user}) {
   const [isSaving, setIsSaving] = React.useState(false)
   const [redirect, setRedirect] = React.useState(false)
