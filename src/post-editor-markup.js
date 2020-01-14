@@ -5,6 +5,7 @@ import {Redirect} from 'react-router'
 function Editor({user}) {
   const [isSaving, setIsSaving] = React.useState(false)
   const [redirect, setRedirect] = React.useState(false)
+  const [error, setError] = React.useState(null)
 
   function handleSubmit(e) {
     e.preventDefault()
@@ -17,7 +18,13 @@ function Editor({user}) {
       date: new Date().toISOString(),
       authorId: user.id,
     }
-    savePost(newPost).then(() => setRedirect(true))
+    savePost(newPost).then(
+      () => setRedirect(true),
+      response => {
+        setIsSaving(false)
+        setError(response.data.error)
+      },
+    )
   }
   if (redirect) {
     return <Redirect to="/" />
@@ -37,6 +44,7 @@ function Editor({user}) {
       <button type="submit" disabled={isSaving}>
         Submit
       </button>
+      {error ? <div role="alert">{error}</div> : null}
     </form>
   )
 }
