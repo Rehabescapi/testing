@@ -1,17 +1,30 @@
 import React from 'react'
 import {Router} from 'react-router-dom'
-import {render, fireEvent} from '@testing-library/react'
+import {render as rtlRender, fireEvent} from '@testing-library/react'
 
 import {createMemoryHistory} from 'history'
 import {Main} from '../main'
 
+function render(
+  ui,
+  {
+    route = '/',
+    history = createMemoryHistory({initialEntries: [route]}),
+    ...renderOptions
+  } = {},
+) {
+  function Wrapper({children}) {
+    return <Router history={history}>{children}</Router>
+  }
+
+  return {
+    ...rtlRender(ui, {wrapper: Wrapper, ...renderOptions}),
+    history,
+  }
+}
+
 test('main render about and home and I can navigate to those pages', () => {
-  const history = createMemoryHistory({initialEntries: ['/']})
-  const {getByRole, getByText} = render(
-    <Router history={history}>
-      <Main />
-    </Router>,
-  )
+  const {getByRole, getByText} = render(<Main />)
 
   expect(getByRole('heading')).toHaveTextContent(/home/i)
 
@@ -20,14 +33,9 @@ test('main render about and home and I can navigate to those pages', () => {
 })
 
 test('landing on a bad page shows no match component', () => {
-  const history = createMemoryHistory({
-    initialEntries: ['/something-that-does-not-match'],
+  const {getByRole} = render(<Main />, {
+    route: '/something-that-does-not-match',
   })
-  const {getByRole} = render(
-    <Router history={history}>
-      <Main />
-    </Router>,
-  )
 
   expect(getByRole('heading')).toHaveTextContent(/404/i)
 })
