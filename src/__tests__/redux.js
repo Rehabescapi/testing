@@ -1,29 +1,39 @@
 import React from 'react'
 import {createStore} from 'redux'
-import {render, fireEvent} from '@testing-library/react'
+import {render as rtlRender, fireEvent} from '@testing-library/react'
 import {Provider} from 'react-redux'
 
-import {store as AppStore} from '../redux-store'
 import {Counter} from '../redux-counter'
 import {reducer} from '../redux-reducer'
+
+function render(
+  ui,
+  {
+    initialState,
+    store = createStore(reducer, initialState),
+    ...rtlOptions
+  } = {},
+) {
+  function Wrapper({children}) {
+    return <Provider store={store}>{children}</Provider>
+  }
+  return {
+    ...rtlRender(ui, {wrapper: Wrapper, ...rtlOptions}),
+    store,
+  }
+}
+
 test('can render with redux with default', () => {
-  const {getByLabelText, getByText} = render(
-    <Provider store={AppStore}>
-      <Counter />
-    </Provider>,
-  )
+  const {getByLabelText, getByText} = render(<Counter />)
 
   fireEvent.click(getByText('+'))
   expect(getByLabelText(/count/i)).toHaveTextContent('1')
 })
 
 test('can render with redux with', () => {
-  const store = createStore(reducer, {count: 3})
-  const {getByLabelText, getByText} = render(
-    <Provider store={store}>
-      <Counter />
-    </Provider>,
-  )
+  const {getByLabelText, getByText} = render(<Counter />, {
+    initialState: {count: 3},
+  })
 
   fireEvent.click(getByText('-'))
   expect(getByLabelText(/count/i)).toHaveTextContent('2')
